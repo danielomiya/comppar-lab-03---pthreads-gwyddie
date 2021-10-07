@@ -2,6 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void *handle_failure() {
+  fprintf(stderr, "ERROR: Failed to join thread\n");
+  exit(EXIT_FAILURE);
+  return NULL;
+}
+
 void *fib(void *ptr) {
   pthread_t thread1, thread2;
   int n, n1, n2;
@@ -18,8 +24,8 @@ void *fib(void *ptr) {
     pthread_create(&thread1, NULL, fib, &n1);
     pthread_create(&thread2, NULL, fib, &n2);
 
-    pthread_join(thread1, &result1);
-    pthread_join(thread2, &result2);
+    if (pthread_join(thread1, &result1) || pthread_join(thread2, &result2))
+      return handle_failure();
 
     result = (unsigned long int)(result1) + (unsigned long int)(result2);
   }
@@ -36,7 +42,9 @@ int main(void) {
   scanf("%d", &n);
 
   pthread_create(&thread, NULL, fib, &n);
-  pthread_join(thread, &result);
+
+  if (pthread_join(thread, &result))
+    handle_failure();
 
   printf("%ld\n", (unsigned long int)(result));
 

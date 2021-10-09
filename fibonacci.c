@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
 void *handle_failure() {
   fprintf(stderr, "ERROR: Failed to join thread\n");
@@ -34,6 +35,8 @@ void *fib(void *ptr) {
 }
 
 int main(void) {
+  struct timeval started_at, ended_at;
+  double ms_spent;
   pthread_t thread;
   int n;
   void *result;
@@ -41,12 +44,18 @@ int main(void) {
   printf("Type the number of the sequence you'd like to calc: ");
   scanf("%d", &n);
 
+  gettimeofday(&started_at, NULL);
   pthread_create(&thread, NULL, fib, &n);
 
   if (pthread_join(thread, &result))
     handle_failure();
 
+  gettimeofday(&ended_at, NULL);
+  ms_spent = ((ended_at.tv_sec * 1000000 + ended_at.tv_usec) -
+              (started_at.tv_sec * 1000000 + started_at.tv_usec));
+
   printf("%ld\n", (unsigned long int)(result));
+  printf("spent %lf seconds calculating\n", (double)ms_spent / 1e+6);
 
   return EXIT_SUCCESS;
 }
